@@ -239,7 +239,44 @@ char SSD1306_Puts(char* str, FontDef_t* Font, SSD1306_COLOR_t color) {
 	/* Everything OK, zero should be returned */
 	return *str;
 }
- 
+
+/*optimized individual letter functions*/
+
+char SSD1306_Put_char(uint16_t *ch, uint8_t width, uint8_t height ) {
+	volatile uint32_t i, b, j;
+
+//	/* Check available space in LCD */
+//	if (
+//		SSD1306_WIDTH <= (SSD1306.CurrentX + Font->FontWidth) ||
+//		SSD1306_HEIGHT <= (SSD1306.CurrentY + Font->FontHeight)
+//	) {
+//		/* Error */
+//		return 0;
+//	}
+
+	/* Go through font */
+	for (i = 0; i < height; i++) {
+		//b = Font->data[(ch - 32) * Font->FontHeight + i];
+		b = *(ch + i);
+		for (j = 0; j < width; j++) {
+			if ((b << j) & 0x8000) {
+				SSD1306_DrawPixel(SSD1306.CurrentX + j, (SSD1306.CurrentY + i), SSD1306_COLOR_WHITE);
+			} else {
+				SSD1306_DrawPixel(SSD1306.CurrentX + j, (SSD1306.CurrentY + i), SSD1306_COLOR_BLACK);
+			}
+		}
+	}
+
+	/* Increase pointer */
+	SSD1306.CurrentX += width;
+
+	/* Return character written */
+	return ch;
+}
+
+
+
+
 
 void SSD1306_DrawLine(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, SSD1306_COLOR_t c) {
 	int16_t dx, dy, sx, sy, err, e2, i, tmp; 

@@ -285,8 +285,8 @@ void SSD1306_Stopscroll(void);
 void SSD1306_InvertDisplay (int i);
 
 
-
-
+//print individual letter
+char SSD1306_Put_char(uint16_t *ch, uint8_t width, uint8_t height );
 
 
 // clear the display
