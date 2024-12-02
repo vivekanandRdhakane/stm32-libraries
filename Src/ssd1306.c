@@ -21,6 +21,8 @@
    ----------------------------------------------------------------------
  */
 #include "ssd1306.h"
+#include <stdarg.h>
+#include <stdio.h>
 
 extern I2C_HandleTypeDef hi2c1;
 #define SSD1306_I2C &hi2c1
@@ -695,3 +697,121 @@ void ssd1306_I2C_Write(uint8_t address, uint8_t reg, uint8_t data) {
 	dt[1] = data;
 	HAL_I2C_Master_Transmit(SSD1306_I2C, address, dt, 2, 10);
 }
+
+
+
+
+
+
+
+//******************************************************************************
+//********************custom functions******************************************
+//******************************************************************************
+
+
+
+
+
+
+void oinit(void)
+{
+	SSD1306_Init();
+}
+
+
+void print_on_OLED(FontDef_t* Font, uint8_t x, uint8_t y, char* str)
+{
+	    SSD1306_GotoXY (x,y);
+	    SSD1306_Puts (str, Font, 1);
+	    SSD1306_UpdateScreen(); // update screen
+}
+
+void oprint(uint8_t x, uint8_t y, const char *format, ...)
+{
+	    char buffer[256]; // Temporary buffer for formatted string
+	    va_list args;
+
+	    va_start(args, format);
+	    vsnprintf(buffer, sizeof(buffer), format, args);
+	    va_end(args);
+
+	    print_on_OLED(&Font_7x10, x, y, buffer);
+}
+
+void oprint_medium(uint8_t x, uint8_t y, const char *format, ...)
+{
+	    char buffer[256]; // Temporary buffer for formatted string
+	    va_list args;
+
+	    va_start(args, format);
+	    vsnprintf(buffer, sizeof(buffer), format, args);
+	    va_end(args);
+
+	    print_on_OLED(&Font_11x18, x, y, buffer);
+}
+
+
+void oprint_large(uint8_t x, uint8_t y, const char *format, ...)
+{
+	    char buffer[256]; // Temporary buffer for formatted string
+	    va_list args;
+
+	    va_start(args, format);
+	    vsnprintf(buffer, sizeof(buffer), format, args);
+	    va_end(args);
+
+	    print_on_OLED(&Font_16x26, x, y, buffer);
+}
+
+
+
+
+
+/***********************************************************************************************/
+
+
+void oled_print(uint8_t x, uint8_t y, FONTS_SIZE_t font_size, uint16_t** str)
+{
+	SSD1306_GotoXY (x,y);
+
+	for (uint8_t i =0; ;i++ )
+	{
+		if(*str == 0)
+		{
+			SSD1306_UpdateScreen();
+			return;
+		}
+	    SSD1306_Put_char(*str, font_size.Length, font_size.Height);
+	    *str++;
+	}
+
+
+
+}
+
+
+//void oled_print_medium(uint8_t x, uint8_t y, uint16_t** str)
+//{
+//	SSD1306_GotoXY (x,y);
+//
+//	for (uint8_t i =0; ;i++ )
+//	{
+//		if(*str == 0)
+//		{
+//			SSD1306_UpdateScreen();
+//			return;
+//		}
+//	    SSD1306_Put_char(*str,11,18);
+//	    *str++;
+//	}
+//
+//}
+
+
+
+
+
+
+
+
+
