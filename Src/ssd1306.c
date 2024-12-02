@@ -790,24 +790,42 @@ void oled_print(uint8_t x, uint8_t y, FONTS_SIZE_t font_size, uint16_t** str)
 }
 
 
-//void oled_print_medium(uint8_t x, uint8_t y, uint16_t** str)
-//{
-//	SSD1306_GotoXY (x,y);
-//
-//	for (uint8_t i =0; ;i++ )
-//	{
-//		if(*str == 0)
-//		{
-//			SSD1306_UpdateScreen();
-//			return;
-//		}
-//	    SSD1306_Put_char(*str,11,18);
-//	    *str++;
-//	}
-//
-//}
 
+void oled_print_int(uint8_t x, uint8_t y, FONTS_SIZE_t font_size, uint32_t num)
+{
+	SSD1306_GotoXY (x,y);
+	char buffer[15];
+	char *buf;
+    sprintf(buffer, "%d", num);
+    buf = buffer;
 
+    while(*buf != 0 )
+    {
+    	char ch = *buf;
+    	uint8_t index = ch - 48;
+    	//uint16_t* char_pix = s_numbers[index];
+    	uint16_t* char_pix ;
+
+    	if (font_size.Height == small.Height)
+    	    {
+    		    char_pix =  s_numbers[index];
+    	    }
+    	    else if (font_size.Height == medium.Height)
+    	    {
+    	    	char_pix =  m_numbers[index];
+    	    }
+    	    else
+    	    {
+    	    	char_pix =  b_numbers[index];
+    	    }
+	    SSD1306_Put_char(char_pix, font_size.Length, font_size.Height);
+	    *buf++;
+
+    }
+    SSD1306_UpdateScreen();
+    return;
+
+}
 
 
 
