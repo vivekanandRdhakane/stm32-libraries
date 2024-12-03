@@ -9,6 +9,7 @@
 
 #include "nrf24l01p.h"
 
+static uint8_t nrf24l01p_addr_width;
 
 static void cs_high()
 {
@@ -57,6 +58,37 @@ static uint8_t write_register(uint8_t reg, uint8_t value)
 
     return write_val;
 }
+
+
+/**************************************************************************************/
+
+void nrf24l01p_write_bytes(uint8_t reg, uint8_t* buf, uint8_t size)
+{
+    uint8_t command = NRF24L01P_CMD_W_REGISTER | reg;
+    uint8_t status;
+
+    cs_low();
+    HAL_SPI_TransmitReceive(NRF24L01P_SPI, &command, &status, 1, 2000);
+    HAL_SPI_Transmit(NRF24L01P_SPI, buf, size, 2000);
+    cs_high();
+}
+
+uint8_t nrf24l01p_read_bytes(uint8_t reg, uint8_t* buf, uint8_t size)
+{
+    uint8_t command = NRF24L01P_CMD_R_REGISTER | reg;
+    uint8_t status;
+
+    cs_low();
+    HAL_SPI_TransmitReceive(NRF24L01P_SPI, &command, &status, 1, 2000);
+    HAL_SPI_Receive(NRF24L01P_SPI, buf, size, 2000);
+    cs_high();
+
+    return status;
+}
+
+
+/**************************************************************************************/
+
 
 
 /* nRF24L01+ Main Functions */
@@ -309,7 +341,25 @@ void nrf24l01p_set_crc_length(length bytes)
 
 void nrf24l01p_set_address_widths(widths bytes)
 {
+	nrf24l01p_addr_width = bytes;
     write_register(NRF24L01P_REG_SETUP_AW, bytes - 2);
+}
+
+
+
+void nrf24l01p_open_Writing_Pipe(uint8_t* address)
+{
+    // Note that AVR 8-bit uC's store this LSB first, and the NRF24L01(+)
+    // expects it LSB first too, so we're good.
+//	uint8_t read_back[5] = {9,9,9,9,9};
+
+
+	 nrf24l01p_write_bytes( NRF24L01P_REG_RX_ADDR_P0 ,address, nrf24l01p_addr_width);
+//	 nrf24l01p_read_bytes( NRF24L01P_REG_RX_ADDR_P0 ,read_back, nrf24l01p_addr_width);
+//	//value = read_register(NRF24L01P_REG_RX_ADDR_P0);
+//	read_back;
+//    write_register(NRF24L01P_REG_RX_ADDR_P0, address);
+//    write_register(NRF24L01P_REG_TX_ADDR, address, addr_width);
 }
 
 void nrf24l01p_auto_retransmit_count(count cnt)
