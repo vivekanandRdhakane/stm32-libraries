@@ -8,6 +8,7 @@
 
 
 #include "nrf24l01p.h"
+#include <stdio.h>
 
 static uint8_t nrf24l01p_addr_width;
 
@@ -124,6 +125,14 @@ void nrf24l01p_tx_init(channel MHz, air_data_rate bps)
     nrf24l01p_set_rf_channel(MHz);
     nrf24l01p_set_rf_air_data_rate(bps);
     nrf24l01p_set_rf_tx_output_power(_0dBm);
+
+    write_register(NRF24L01P_REG_EN_AA, 0x01);  // Enable Enhanced ShockBurst on pipe 0
+
+    // Enable RX pipe 0 for receiving acknowledgments
+    write_register(NRF24L01P_REG_EN_RXADDR, 0x01); // Enable data pipe 0
+
+    // Set RX payload width for pipe 0 (same as TX payload size)
+    write_register(NRF24L01P_REG_RX_PW_P0, 32); // Example: 32-byte payload
 
     nrf24l01p_set_crc_length(1);
     nrf24l01p_set_address_widths(5);
@@ -355,6 +364,8 @@ void nrf24l01p_open_Writing_Pipe(uint8_t* address)
 
 
 	 nrf24l01p_write_bytes( NRF24L01P_REG_RX_ADDR_P0 ,address, nrf24l01p_addr_width);
+	 nrf24l01p_write_bytes( NRF24L01P_REG_TX_ADDR ,address, nrf24l01p_addr_width);
+
 //	 nrf24l01p_read_bytes( NRF24L01P_REG_RX_ADDR_P0 ,read_back, nrf24l01p_addr_width);
 //	//value = read_register(NRF24L01P_REG_RX_ADDR_P0);
 //	read_back;
@@ -414,3 +425,124 @@ void nrf24l01p_set_rf_air_data_rate(air_data_rate bps)
     }
     write_register(NRF24L01P_REG_RF_SETUP, new_rf_setup);
 }
+
+
+void NRF24_WritePayload(uint8_t *data, uint8_t length) {
+	cs_low();
+    uint8_t cmd = NRF24L01P_CMD_W_TX_PAYLOAD;
+    HAL_SPI_Transmit(NRF24L01P_SPI, &cmd, 1, HAL_MAX_DELAY);
+    HAL_SPI_Transmit(NRF24L01P_SPI, data, length, HAL_MAX_DELAY);
+    cs_high();
+}
+
+
+void NRF24_SetRXMode(void) {
+    uint8_t config = read_register(NRF24L01P_REG_CONFIG);
+    write_register(NRF24L01P_REG_CONFIG, config | 0x01); // Set PRX mode
+    ce_high();
+}
+
+void NRF24_SetTXMode(void) {
+    uint8_t config = read_register(NRF24L01P_REG_CONFIG);
+    write_register(NRF24L01P_REG_CONFIG, config & ~0x01); // Clear PRX mode
+    ce_low();
+}
+
+// Updated Transmit Function with Acknowledgment Read
+bool NRF24_TransmitWithAck(uint8_t *data, uint8_t length) {
+    NRF24_SetTXMode();
+    NRF24_WritePayload(data, length);
+    nrf24l01p_clear_tx_ds();
+    nrf24l01p_clear_max_rt();
+    // Pulse CE to initiate transmission
+    ce_high();
+    HAL_Delay(1); // Short delay
+    ce_low();
+
+    // Wait for transmission to complete
+    uint32_t timeout = HAL_GetTick() + 100; // 100ms timeout
+    uint8_t status;
+    do {
+        status = read_register(NRF24L01P_REG_STATUS);
+        if (status & (NRF24_MASK_TX_DS | NRF24_MASK_MAX_RT)) {
+            break;
+        }
+    } while (HAL_GetTick() < timeout);
+
+    // Clear flags in the STATUS register
+    write_register(NRF24L01P_REG_STATUS, NRF24_MASK_TX_DS | NRF24_MASK_MAX_RT);
+
+    // Check if data was sent successfully or if max retransmits occurred
+    if (status & NRF24_MASK_TX_DS) {
+        return 1; // Acknowledgment received
+    } else if (status & NRF24_MASK_MAX_RT) {
+        write_register(NRF24L01P_CMD_FLUSH_TX, NRF24L01P_CMD_NOP); // Flush TX FIFO
+        return 0; // Acknowledgment failed
+    }
+
+    return 0; // Transmission failed
+}
+
+
+
+void NRF24_PrintAllRegisters(void) {
+    uint8_t value;
+
+    printf("NRF24L01+ Register Values:\n");
+
+    // Loop through all 25 registers (0x00 to 0x17 + STATUS)
+    for (uint8_t reg = 0x00; reg <= 0x17; reg++) {
+        value = read_register(reg);
+        printf("Reg 0x%02X: 0x%02X\n", reg, value);
+    }
+
+    // Print additional status-related information
+    printf("STATUS: 0x%02X\n", read_register(NRF24L01P_REG_STATUS));
+    printf("RX_ADDR_P0: ");
+    NRF24_PrintAddress(NRF24L01P_REG_RX_ADDR_P0);
+    printf("TX_ADDR: ");
+    NRF24_PrintAddress(NRF24L01P_REG_TX_ADDR);
+    printf("FIFO_STATUS: 0x%02X\n", read_register(NRF24L01P_REG_FIFO_STATUS));
+    printf("DYNPD: 0x%02X\n", read_register(NRF24L01P_REG_DYNPD));
+    printf("FEATURE: 0x%02X\n", read_register(NRF24L01P_REG_FEATURE));
+}
+
+// Function to read a multi-byte register (e.g., addresses)
+void NRF24_ReadMultiRegister(uint8_t reg, uint8_t *data, uint8_t length) {
+	cs_low();
+    uint8_t cmd = NRF24L01P_CMD_R_REGISTER | reg;
+    HAL_SPI_Transmit(NRF24L01P_SPI, &cmd, 1, HAL_MAX_DELAY);
+    HAL_SPI_Receive(NRF24L01P_SPI, data, length, HAL_MAX_DELAY);
+    cs_high();
+}
+
+
+// Helper function to print multi-byte addresses (e.g., RX_ADDR_P0, TX_ADDR)
+void NRF24_PrintAddress(uint8_t reg) {
+    uint8_t address[5];
+    NRF24_ReadMultiRegister(reg, address, 5);
+    for (uint8_t i = 0; i < 5; i++) {
+        printf("0x%02X ", address[i]);
+    }
+    printf("\n");
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

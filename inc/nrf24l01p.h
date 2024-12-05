@@ -101,6 +101,9 @@ void nrf24l01p_set_address_widths(widths bytes);
 void nrf24l01p_auto_retransmit_count(count cnt);
 void nrf24l01p_auto_retransmit_delay(delay us);
 void nrf24l01p_open_Writing_Pipe(uint8_t* address);
+bool NRF24_TransmitWithAck(uint8_t *data, uint8_t length);
+void NRF24_PrintAllRegisters(void);
+void NRF24_PrintAddress(uint8_t reg);
 
 /* nRF24L01+ Commands */
 #define NRF24L01P_CMD_R_REGISTER                  0b00000000
@@ -143,5 +146,9 @@ void nrf24l01p_open_Writing_Pipe(uint8_t* address);
 #define NRF24L01P_REG_DYNPD             0x1C
 #define NRF24L01P_REG_FEATURE           0x1D
 
+// Bit Masks
+#define NRF24_MASK_RX_DR            0x40
+#define NRF24_MASK_TX_DS            0x20
+#define NRF24_MASK_MAX_RT           0x10
 
 #endif /* __NRF24L01P_H__ */
