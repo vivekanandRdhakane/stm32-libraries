@@ -93,7 +93,7 @@ uint8_t nrf24l01p_read_bytes(uint8_t reg, uint8_t* buf, uint8_t size)
 
 
 /* nRF24L01+ Main Functions */
-void nrf24l01p_rx_init(channel MHz, air_data_rate bps)
+void nrf24l01p_rx_init(channel channel_no, air_data_rate bps)
 {
     nrf24l01p_reset();
 
@@ -102,7 +102,7 @@ void nrf24l01p_rx_init(channel MHz, air_data_rate bps)
 
     nrf24l01p_rx_set_payload_widths(NRF24L01P_PAYLOAD_LENGTH);
 
-    nrf24l01p_set_rf_channel(MHz);
+    nrf24l01p_set_rf_channel(channel_no);
     nrf24l01p_set_rf_air_data_rate(bps);
     nrf24l01p_set_rf_tx_output_power(_0dBm);
 
@@ -115,14 +115,38 @@ void nrf24l01p_rx_init(channel MHz, air_data_rate bps)
     ce_high();
 }
 
-void nrf24l01p_tx_init(channel MHz, air_data_rate bps)
+void nrf24l01p_start_listening(nrf_rx_pipe_t pipe_no, uint8_t* address)
+{
+	// read RX pipe Enable reg
+	uint8_t reg_val = read_register(NRF24L01P_REG_EN_RXADDR);
+	reg_val |= (0x01U << pipe_no);
+	write_register(NRF24L01P_REG_EN_RXADDR, reg_val); // Enable data pipe
+
+	//write address
+	uint8_t pipe_reg_addr = NRF24L01P_REG_RX_ADDR_P0 + pipe_no;
+
+	if(pipe_no <= nrf_rx_pipe_1 )
+	{
+		nrf24l01p_write_bytes( pipe_reg_addr ,address, nrf24l01p_addr_width);
+	}
+	else //if pipe no. is 2-5 , get only last byte
+	{
+		uint8_t LSB = address[nrf24l01p_addr_width-1];
+		write_register( pipe_reg_addr ,LSB);
+	}
+
+
+}
+
+
+void nrf24l01p_tx_init(channel channel_no, air_data_rate bps)
 {
     nrf24l01p_reset();
 
     nrf24l01p_ptx_mode();
     nrf24l01p_power_up();
 
-    nrf24l01p_set_rf_channel(MHz);
+    nrf24l01p_set_rf_channel(channel_no);
     nrf24l01p_set_rf_air_data_rate(bps);
     nrf24l01p_set_rf_tx_output_power(_0dBm);
 
@@ -143,9 +167,10 @@ void nrf24l01p_tx_init(channel MHz, air_data_rate bps)
     ce_high();
 }
 
-void nrf24l01p_rx_receive(uint8_t* rx_payload)
+void nrf24l01p_rx_receive(nrf_rx_packet_t* nrf_rx_packet)
 {
-    nrf24l01p_read_rx_fifo(rx_payload);
+    nrf_rx_packet->pipe_no = (NRF24L01P_PIPE_NO_MASK & read_register(NRF24L01P_REG_STATUS)) >> 1;
+    nrf24l01p_read_rx_fifo(nrf_rx_packet->rx_data);
     nrf24l01p_clear_rx_dr();
 
 }
@@ -358,20 +383,25 @@ void nrf24l01p_set_address_widths(widths bytes)
 
 void nrf24l01p_open_Writing_Pipe(uint8_t* address)
 {
-    // Note that AVR 8-bit uC's store this LSB first, and the NRF24L01(+)
-    // expects it LSB first too, so we're good.
-//	uint8_t read_back[5] = {9,9,9,9,9};
 
+	// Enable RX pipe 0 for receiving acknowledgments
+	uint8_t reg_val = read_register(NRF24L01P_REG_EN_RXADDR);
+	reg_val |= 0x01;
+	write_register(NRF24L01P_REG_EN_RXADDR, reg_val); // Enable data pipe 0
 
-	 nrf24l01p_write_bytes( NRF24L01P_REG_RX_ADDR_P0 ,address, nrf24l01p_addr_width);
-	 nrf24l01p_write_bytes( NRF24L01P_REG_TX_ADDR ,address, nrf24l01p_addr_width);
+	//Enable acknowledgments
+	reg_val = read_register(NRF24L01P_REG_EN_AA);
+	reg_val |= 0x3F;   //enable for all pipes
+	write_register(NRF24L01P_REG_EN_AA, reg_val); 
 
-//	 nrf24l01p_read_bytes( NRF24L01P_REG_RX_ADDR_P0 ,read_back, nrf24l01p_addr_width);
-//	//value = read_register(NRF24L01P_REG_RX_ADDR_P0);
-//	read_back;
-//    write_register(NRF24L01P_REG_RX_ADDR_P0, address);
-//    write_register(NRF24L01P_REG_TX_ADDR, address, addr_width);
+    //set address to rx pipe 0 to receive the ack
+	nrf24l01p_write_bytes( NRF24L01P_REG_RX_ADDR_P0 ,address, nrf24l01p_addr_width);
+
+	//set address to tx pipe
+	nrf24l01p_write_bytes( NRF24L01P_REG_TX_ADDR ,address, nrf24l01p_addr_width);
 }
+
+
 
 void nrf24l01p_auto_retransmit_count(count cnt)
 {
@@ -393,10 +423,9 @@ void nrf24l01p_auto_retransmit_delay(delay us)
     write_register(NRF24L01P_REG_SETUP_RETR, new_setup_retr);
 }
 
-void nrf24l01p_set_rf_channel(channel MHz)
+void nrf24l01p_set_rf_channel(channel channel_no)
 {
-	uint16_t new_rf_ch = MHz - 2400;
-    write_register(NRF24L01P_REG_RF_CH, new_rf_ch);
+    write_register(NRF24L01P_REG_RF_CH, channel_no);
 }
 
 void nrf24l01p_set_rf_tx_output_power(output_power dBm)
@@ -500,6 +529,8 @@ void NRF24_PrintAllRegisters(void) {
     printf("STATUS: 0x%02X\n", read_register(NRF24L01P_REG_STATUS));
     printf("RX_ADDR_P0: ");
     NRF24_PrintAddress(NRF24L01P_REG_RX_ADDR_P0);
+    printf("RX_ADDR_P1: ");
+    NRF24_PrintAddress(NRF24L01P_REG_RX_ADDR_P1);
     printf("TX_ADDR: ");
     NRF24_PrintAddress(NRF24L01P_REG_TX_ADDR);
     printf("FIFO_STATUS: 0x%02X\n", read_register(NRF24L01P_REG_FIFO_STATUS));

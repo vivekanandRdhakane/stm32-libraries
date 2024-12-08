@@ -29,15 +29,13 @@ extern SPI_HandleTypeDef hspi1;
 #define NRF24L01P_IRQ_PIN_PORT            GPIOB
 #define NRF24L01P_IRQ_PIN_NUMBER          GPIO_PIN_0
 
-#define NRF24L01P_PAYLOAD_LENGTH          32     // 1 - 32bytes
-
 
 /* nRF24L01+ typedefs */
 typedef uint8_t count;
 typedef uint8_t widths;
 typedef uint8_t length;
 typedef uint16_t delay;
-typedef uint16_t channel;
+typedef uint8_t channel;
 
 typedef enum
 {
@@ -54,12 +52,30 @@ typedef enum
     _18dBm = 0
 } output_power;
 
+typedef enum
+{
+    nrf_rx_pipe_0,
+    nrf_rx_pipe_1,
+    nrf_rx_pipe_2,
+    nrf_rx_pipe_3,
+    nrf_rx_pipe_4,
+    nrf_rx_pipe_5
+} nrf_rx_pipe_t;
+
+typedef struct
+{
+	uint8_t pipe_no;
+	char rx_data[NRF24L01P_PAYLOAD_LENGTH];
+
+}nrf_rx_packet_t;
+
+
 
 /* Main Functions */
 void nrf24l01p_rx_init(channel MHz, air_data_rate bps);
 void nrf24l01p_tx_init(channel MHz, air_data_rate bps);
 
-void nrf24l01p_rx_receive(uint8_t* rx_payload);
+void nrf24l01p_rx_receive(nrf_rx_packet_t* nrf_rx_packet);
 void nrf24l01p_tx_transmit(uint8_t* tx_payload);
 
 // Check tx_ds or max_rt
@@ -117,6 +133,7 @@ void NRF24_PrintAddress(uint8_t reg);
 #define NRF24L01P_CMD_W_ACK_PAYLOAD               0b10101000
 #define NRF24L01P_CMD_W_TX_PAYLOAD_NOACK          0b10110000
 #define NRF24L01P_CMD_NOP                         0b11111111    
+#define NRF24L01P_PIPE_NO_MASK                    0b00001110
 
 /* nRF24L01+ Registers */
 #define NRF24L01P_REG_CONFIG            0x00
