@@ -54,6 +54,7 @@ uint8_t SSD1306_Init(void) {
 
 	/* Init I2C */
 	ssd1306_I2C_Init();
+	HAL_Delay(10);
 	
 	/* Check if LCD connected to I2C */
 	if (HAL_I2C_IsDeviceReady(SSD1306_I2C, SSD1306_I2C_ADDR, 1, 20000) != HAL_OK) {
@@ -713,9 +714,9 @@ void ssd1306_I2C_Write(uint8_t address, uint8_t reg, uint8_t data) {
 
 
 
-void oinit(void)
+uint8_t oinit(void)
 {
-	SSD1306_Init();
+	return SSD1306_Init();
 }
 
 

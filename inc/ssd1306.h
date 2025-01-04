@@ -295,7 +295,7 @@ void SSD1306_Clear (void);
 
 
 
-void oinit(void);
+uint8_t oinit(void);
 void oprint(uint8_t x, uint8_t y, const char *format, ...);
 void oprint_medium(uint8_t x, uint8_t y, const char *format, ...);
 void oprint_large(uint8_t x, uint8_t y, const char *format, ...);
