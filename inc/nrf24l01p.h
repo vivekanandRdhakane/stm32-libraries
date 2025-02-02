@@ -39,6 +39,17 @@ typedef uint8_t channel;
 
 typedef enum
 {
+    NRF24L01P_REG_RX_PW_P0,
+    NRF24L01P_REG_RX_PW_P1,
+    NRF24L01P_REG_RX_PW_P2,
+    NRF24L01P_REG_RX_PW_P3,
+    NRF24L01P_REG_RX_PW_P4,
+    NRF24L01P_REG_RX_PW_P5
+} pipe_t;
+
+
+typedef enum
+{
     _250kbps = 2,
     _1Mbps   = 0,
     _2Mbps   = 1
@@ -95,7 +106,7 @@ uint8_t nrf24l01p_get_status();
 uint8_t nrf24l01p_get_fifo_status();
 
 // Static payload lengths
-void nrf24l01p_rx_set_payload_widths(widths bytes);
+void nrf24l01p_rx_set_payload_widths(pipe_t pipe,widths bytes);
 
 uint8_t nrf24l01p_read_rx_fifo(uint8_t* rx_payload);
 uint8_t nrf24l01p_write_tx_fifo(uint8_t* tx_payload);
@@ -120,6 +131,7 @@ void nrf24l01p_open_Writing_Pipe(uint8_t* address);
 bool NRF24_TransmitWithAck(uint8_t *data, uint8_t length);
 void NRF24_PrintAllRegisters(void);
 void NRF24_PrintAddress(uint8_t reg);
+void nrf24l01p_start_listening(nrf_rx_pipe_t pipe_no, uint8_t* address);
 
 /* nRF24L01+ Commands */
 #define NRF24L01P_CMD_R_REGISTER                  0b00000000

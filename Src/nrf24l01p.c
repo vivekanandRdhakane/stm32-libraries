@@ -100,7 +100,8 @@ void nrf24l01p_rx_init(channel channel_no, air_data_rate bps)
     nrf24l01p_prx_mode();
     nrf24l01p_power_up();
 
-    nrf24l01p_rx_set_payload_widths(NRF24L01P_PAYLOAD_LENGTH);
+    nrf24l01p_rx_set_payload_widths( NRF24L01P_REG_RX_PW_P0, NRF24L01P_PAYLOAD_LENGTH);
+    nrf24l01p_rx_set_payload_widths( NRF24L01P_REG_RX_PW_P1, NRF24L01P_PAYLOAD_LENGTH);
 
     nrf24l01p_set_rf_channel(channel_no);
     nrf24l01p_set_rf_air_data_rate(bps);
@@ -309,9 +310,9 @@ uint8_t nrf24l01p_get_fifo_status()
     return read_register(NRF24L01P_REG_FIFO_STATUS);
 }
 
-void nrf24l01p_rx_set_payload_widths(widths bytes)
+void nrf24l01p_rx_set_payload_widths(pipe_t pipe,widths bytes)
 {
-    write_register(NRF24L01P_REG_RX_PW_P0, bytes);
+    write_register(pipe, bytes);
 }
 
 void nrf24l01p_clear_rx_dr()
