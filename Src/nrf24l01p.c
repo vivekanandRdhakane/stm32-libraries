@@ -12,22 +12,22 @@
 
 static uint8_t nrf24l01p_addr_width;
 
-static void cs_high()
+void cs_high()
 {
     HAL_GPIO_WritePin(NRF24L01P_SPI_CS_PIN_PORT, NRF24L01P_SPI_CS_PIN_NUMBER, GPIO_PIN_SET);
 }
 
-static void cs_low()
+void cs_low()
 {
     HAL_GPIO_WritePin(NRF24L01P_SPI_CS_PIN_PORT, NRF24L01P_SPI_CS_PIN_NUMBER, GPIO_PIN_RESET);
 }
 
-static void ce_high()
+void ce_high()
 {
     HAL_GPIO_WritePin(NRF24L01P_CE_PIN_PORT, NRF24L01P_CE_PIN_NUMBER, GPIO_PIN_SET);
 }
 
-static void ce_low()
+void ce_low()
 {
     HAL_GPIO_WritePin(NRF24L01P_CE_PIN_PORT, NRF24L01P_CE_PIN_NUMBER, GPIO_PIN_RESET);
 }
@@ -46,7 +46,7 @@ static uint8_t read_register(uint8_t reg)
     return read_val;
 }
 
-static uint8_t write_register(uint8_t reg, uint8_t value)
+uint8_t write_register(uint8_t reg, uint8_t value)
 {
     uint8_t command = NRF24L01P_CMD_W_REGISTER | reg;
     uint8_t status;
@@ -393,7 +393,7 @@ void nrf24l01p_open_Writing_Pipe(uint8_t* address)
 	//Enable acknowledgments
 	reg_val = read_register(NRF24L01P_REG_EN_AA);
 	reg_val |= 0x3F;   //enable for all pipes
-	write_register(NRF24L01P_REG_EN_AA, reg_val); 
+	write_register(NRF24L01P_REG_EN_AA, reg_val);
 
     //set address to rx pipe 0 to receive the ack
 	nrf24l01p_write_bytes( NRF24L01P_REG_RX_ADDR_P0 ,address, nrf24l01p_addr_width);

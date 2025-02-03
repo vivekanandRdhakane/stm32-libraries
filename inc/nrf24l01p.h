@@ -14,7 +14,7 @@
 
 #include "main.h"    // header from stm32cubemx code generate
 #include <stdbool.h>
-
+#include "nrf24l01_csr.h"
 
 /* User Configurations */
 extern SPI_HandleTypeDef hspi1;
@@ -81,6 +81,59 @@ typedef struct
 }nrf_rx_packet_t;
 
 
+#include <stdint.h>
+
+// Structure to represent the nRF24L01+ configuration
+typedef struct {
+    // Configuration Register (CONFIG)
+    uint8_t config; // Bits: MASK_RX_DR, MASK_TX_DS, MASK_MAX_RT, EN_CRC, CRCO, PWR_UP, PRIM_RX
+
+    // Auto Acknowledgment Register (EN_AA)
+    uint8_t en_aa; // Enable Auto Acknowledgment for each data pipe (P0-P5)
+
+    // Enabled RX Addresses Register (EN_RXADDR)
+    uint8_t en_rxaddr; // Enable RX addresses for each data pipe (P0-P5)
+
+    // Setup of Address Widths Register (SETUP_AW)
+    uint8_t setup_aw; // Address width (3-5 bytes)
+
+    // Setup of Automatic Retransmission Register (SETUP_RETR)
+    uint8_t setup_retr; // Auto retransmit delay and count
+
+    // RF Channel Register (RF_CH)
+    uint8_t rf_ch; // RF channel frequency (0-125)
+
+    // RF Setup Register (RF_SETUP)
+    uint8_t rf_setup; // Data rate, power, and other RF settings
+
+    // Status Register (STATUS)
+    uint8_t status; // Current status of the module
+
+    // Transmit Address (TX_ADDR)
+    uint8_t tx_addr[5]; // 5-byte transmit address
+
+    // Receive Addresses (RX_ADDR_P0-P5)
+    uint8_t rx_addr_p0[5]; // 5-byte receive address for pipe 0
+    uint8_t rx_addr_p1[5]; // 5-byte receive address for pipe 1
+    uint8_t rx_addr_p2;    // 1-byte receive address for pipe 2
+    uint8_t rx_addr_p3;    // 1-byte receive address for pipe 3
+    uint8_t rx_addr_p4;    // 1-byte receive address for pipe 4
+    uint8_t rx_addr_p5;    // 1-byte receive address for pipe 5
+
+    // Receive Payload Widths (RX_PW_P0-P5)
+    uint8_t rx_pw_p0; // Payload width for pipe 0
+    uint8_t rx_pw_p1; // Payload width for pipe 1
+    uint8_t rx_pw_p2; // Payload width for pipe 2
+    uint8_t rx_pw_p3; // Payload width for pipe 3
+    uint8_t rx_pw_p4; // Payload width for pipe 4
+    uint8_t rx_pw_p5; // Payload width for pipe 5
+
+    // Dynamic Payload Register (DYNPD)
+    uint8_t dynpd; // Enable dynamic payload for each data pipe (P0-P5)
+
+    // Feature Register (FEATURE)
+    uint8_t feature; // Enable dynamic payload, ACK payload, and other features
+} nrf24l01_config_t;
 
 /* Main Functions */
 void nrf24l01p_rx_init(channel MHz, air_data_rate bps);
@@ -132,6 +185,13 @@ bool NRF24_TransmitWithAck(uint8_t *data, uint8_t length);
 void NRF24_PrintAllRegisters(void);
 void NRF24_PrintAddress(uint8_t reg);
 void nrf24l01p_start_listening(nrf_rx_pipe_t pipe_no, uint8_t* address);
+uint8_t write_register(uint8_t reg, uint8_t value);
+void nrf24l01p_write_bytes(uint8_t reg, uint8_t* buf, uint8_t size);
+void config_nrf(void);
+void cs_high(void);
+void cs_low(void);
+void ce_high(void);
+void ce_low(void);
 
 /* nRF24L01+ Commands */
 #define NRF24L01P_CMD_R_REGISTER                  0b00000000
@@ -144,7 +204,7 @@ void nrf24l01p_start_listening(nrf_rx_pipe_t pipe_no, uint8_t* address);
 #define NRF24L01P_CMD_R_RX_PL_WID                 0b01100000
 #define NRF24L01P_CMD_W_ACK_PAYLOAD               0b10101000
 #define NRF24L01P_CMD_W_TX_PAYLOAD_NOACK          0b10110000
-#define NRF24L01P_CMD_NOP                         0b11111111    
+#define NRF24L01P_CMD_NOP                         0b11111111
 #define NRF24L01P_PIPE_NO_MASK                    0b00001110
 
 /* nRF24L01+ Registers */
