@@ -294,6 +294,9 @@ char SSD1306_Put_char(uint16_t *ch, uint8_t width, uint8_t height );
 void SSD1306_Clear (void);
 
 
+// Rotate display by 180 degree
+void SSD1306_rotate_display(void);
+
 
 uint8_t oinit(void);
 void oprint(uint8_t x, uint8_t y, const char *format, ...);
@@ -301,7 +304,6 @@ void oprint_medium(uint8_t x, uint8_t y, const char *format, ...);
 void oprint_large(uint8_t x, uint8_t y, const char *format, ...);
 void oled_print(uint8_t x, uint8_t y, FONTS_SIZE_t font_size, uint16_t** str);
 void oled_print_int(uint8_t x, uint8_t y, FONTS_SIZE_t font_size, uint32_t num);
-
 
 
 /* C++ detection */

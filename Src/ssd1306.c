@@ -137,6 +137,13 @@ uint8_t SSD1306_Init(void) {
 	return 1;
 }
 
+void SSD1306_rotate_display(void)
+{
+	SSD1306_WRITECOMMAND(0xC0); //Set COM Output Scan Direction
+	SSD1306_WRITECOMMAND(0xA0); //--set segment re-map 127 to 0
+}
+
+
 void SSD1306_UpdateScreen(void) {
 	uint8_t m;
 	
