@@ -137,6 +137,16 @@ uint8_t SSD1306_Init(void) {
 	return 1;
 }
 
+void SSD1306_turn_ON(void)
+{
+	SSD1306_WRITECOMMAND(0xAF); //--turn on SSD1306 panel
+}
+
+void SSD1306_turn_OFF(void)
+{
+	SSD1306_WRITECOMMAND(0xAE); //display off
+}
+
 void SSD1306_rotate_display(void)
 {
 	SSD1306_WRITECOMMAND(0xC0); //Set COM Output Scan Direction

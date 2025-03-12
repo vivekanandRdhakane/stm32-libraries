@@ -304,6 +304,8 @@ void oprint_medium(uint8_t x, uint8_t y, const char *format, ...);
 void oprint_large(uint8_t x, uint8_t y, const char *format, ...);
 void oled_print(uint8_t x, uint8_t y, FONTS_SIZE_t font_size, uint16_t** str);
 void oled_print_int(uint8_t x, uint8_t y, FONTS_SIZE_t font_size, uint32_t num);
+void SSD1306_turn_ON(void);
+void SSD1306_turn_OFF(void);
 
 
 /* C++ detection */
