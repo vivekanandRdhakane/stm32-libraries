@@ -796,7 +796,7 @@ void oled_print(uint8_t x, uint8_t y, FONTS_SIZE_t font_size, uint16_t** str)
 	{
 		if(*str == 0)
 		{
-			SSD1306_UpdateScreen();
+			//SSD1306_UpdateScreen();
 			return;
 		}
 	    SSD1306_Put_char(*str, font_size.Length, font_size.Height);
@@ -821,6 +821,11 @@ void oled_print_int(uint8_t x, uint8_t y, FONTS_SIZE_t font_size, uint32_t num)
     {
     	char ch = *buf;
     	uint8_t index = ch - 48;
+
+    	if(ch == '-')
+    	{
+    		index = 10;
+    	}
     	//uint16_t* char_pix = s_numbers[index];
     	uint16_t* char_pix ;
 
@@ -840,7 +845,7 @@ void oled_print_int(uint8_t x, uint8_t y, FONTS_SIZE_t font_size, uint32_t num)
 	    *buf++;
 
     }
-    SSD1306_UpdateScreen();
+    //SSD1306_UpdateScreen();
     return;
 
 }

@@ -666,9 +666,9 @@ uint16_t b_tilda []   = {0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000
 
 
 
-uint16_t* s_numbers[] = {s_0, s_1, s_2, s_3, s_4, s_5, s_6, s_7, s_8, s_9};
-uint16_t* m_numbers[] = {m_0, m_1, m_2, m_3, m_4, m_5, m_6, m_7, m_8, m_9};
-uint16_t* b_numbers[] = {b_0, b_1, b_2, b_3, b_4, b_5, b_6, b_7, b_8, b_9};
+uint16_t* s_numbers[] = {s_0, s_1, s_2, s_3, s_4, s_5, s_6, s_7, s_8, s_9, s_minus};
+uint16_t* m_numbers[] = {m_0, m_1, m_2, m_3, m_4, m_5, m_6, m_7, m_8, m_9, m_minus};
+uint16_t* b_numbers[] = {b_0, b_1, b_2, b_3, b_4, b_5, b_6, b_7, b_8, b_9, b_minus};
 
 
 
