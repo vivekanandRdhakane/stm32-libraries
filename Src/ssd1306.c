@@ -851,7 +851,50 @@ void oled_print_int(uint8_t x, uint8_t y, FONTS_SIZE_t font_size, uint32_t num)
 }
 
 
+void oled_print_float(uint8_t x, uint8_t y, FONTS_SIZE_t font_size, float num)
+{
+	SSD1306_GotoXY (x,y);
+	char buffer[15];
+	char *buf;
+    sprintf(buffer, "%0.2f", num);
+    buf = buffer;
 
+    while(*buf != 0 )
+    {
+    	char ch = *buf;
+    	uint8_t index = ch - 48;
+
+    	if(ch == '-')
+    	{
+    		index = 10;
+    	}
+    	else if(ch == '.')
+    	{
+    		index = 11;
+    	}
+    	//uint16_t* char_pix = s_numbers[index];
+    	uint16_t* char_pix ;
+
+    	if (font_size.Height == small.Height)
+    	    {
+    		    char_pix =  s_numbers[index];
+    	    }
+    	    else if (font_size.Height == medium.Height)
+    	    {
+    	    	char_pix =  m_numbers[index];
+    	    }
+    	    else
+    	    {
+    	    	char_pix =  b_numbers[index];
+    	    }
+	    SSD1306_Put_char(char_pix, font_size.Length, font_size.Height);
+	    *buf++;
+
+    }
+    //SSD1306_UpdateScreen();
+    return;
+
+}
 
 
 
