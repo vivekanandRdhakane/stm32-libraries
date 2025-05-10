@@ -856,7 +856,14 @@ void oled_print_float(uint8_t x, uint8_t y, FONTS_SIZE_t font_size, float num)
 	SSD1306_GotoXY (x,y);
 	char buffer[15];
 	char *buf;
-    sprintf(buffer, "%0.2f", num);
+	if(font_size.Height == big.Height)
+	{
+		sprintf(buffer, "%0.1f", num);
+	}
+	else
+	{
+		sprintf(buffer, "%0.2f", num);
+	}
     buf = buffer;
 
     while(*buf != 0 )
