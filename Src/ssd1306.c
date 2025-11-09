@@ -262,7 +262,7 @@ char SSD1306_Puts(char* str, FontDef_t* Font, SSD1306_COLOR_t color) {
 
 /*optimized individual letter functions*/
 
-char SSD1306_Put_char(uint16_t *ch, uint8_t width, uint8_t height ) {
+char SSD1306_Put_char(uint16_t *ch, uint8_t width, uint8_t height,  bool invert_color) {
 	volatile uint32_t i, b, j;
 
 //	/* Check available space in LCD */
@@ -273,16 +273,20 @@ char SSD1306_Put_char(uint16_t *ch, uint8_t width, uint8_t height ) {
 //		/* Error */
 //		return 0;
 //	}
-
+    uint8_t fill_color= SSD1306_COLOR_WHITE;
+    if(invert_color)
+	{
+		fill_color = SSD1306_COLOR_BLACK;
+	}
 	/* Go through font */
 	for (i = 0; i < height; i++) {
 		//b = Font->data[(ch - 32) * Font->FontHeight + i];
 		b = *(ch + i);
 		for (j = 0; j < width; j++) {
 			if ((b << j) & 0x8000) {
-				SSD1306_DrawPixel(SSD1306.CurrentX + j, (SSD1306.CurrentY + i), SSD1306_COLOR_WHITE);
+				SSD1306_DrawPixel(SSD1306.CurrentX + j, (SSD1306.CurrentY + i), fill_color);
 			} else {
-				SSD1306_DrawPixel(SSD1306.CurrentX + j, (SSD1306.CurrentY + i), SSD1306_COLOR_BLACK);
+				SSD1306_DrawPixel(SSD1306.CurrentX + j, (SSD1306.CurrentY + i), !fill_color);
 			}
 		}
 	}
@@ -788,7 +792,7 @@ void oprint_large(uint8_t x, uint8_t y, const char *format, ...)
 /***********************************************************************************************/
 
 
-void oled_print(uint8_t x, uint8_t y, FONTS_SIZE_t font_size, uint16_t** str)
+void oled_print(uint8_t x, uint8_t y, FONTS_SIZE_t font_size, uint16_t** str, bool invert_color)
 {
 	SSD1306_GotoXY (x,y);
 
@@ -799,7 +803,7 @@ void oled_print(uint8_t x, uint8_t y, FONTS_SIZE_t font_size, uint16_t** str)
 			//SSD1306_UpdateScreen();
 			return;
 		}
-	    SSD1306_Put_char(*str, font_size.Length, font_size.Height);
+	    SSD1306_Put_char(*str, font_size.Length, font_size.Height, invert_color);
 	    *str++;
 	}
 
@@ -841,7 +845,7 @@ void oled_print_int(uint8_t x, uint8_t y, FONTS_SIZE_t font_size, uint32_t num)
     	    {
     	    	char_pix =  b_numbers[index];
     	    }
-	    SSD1306_Put_char(char_pix, font_size.Length, font_size.Height);
+	    SSD1306_Put_char(char_pix, font_size.Length, font_size.Height, false);
 	    *buf++;
 
     }
@@ -894,7 +898,7 @@ void oled_print_float(uint8_t x, uint8_t y, FONTS_SIZE_t font_size, float num)
     	    {
     	    	char_pix =  b_numbers[index];
     	    }
-	    SSD1306_Put_char(char_pix, font_size.Length, font_size.Height);
+	    SSD1306_Put_char(char_pix, font_size.Length, font_size.Height, false);
 	    *buf++;
 
     }
