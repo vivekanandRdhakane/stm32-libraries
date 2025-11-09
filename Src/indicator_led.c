@@ -22,3 +22,8 @@ void blink_green_LED_100ms(void)
     HAL_GPIO_WritePin(GREEN_LED_GPIO_Port, GREEN_LED_Pin, GPIO_PIN_RESET);
 
 }
+
+void turn_ON_OFF_green_LED(uint8_t state)
+{
+    HAL_GPIO_WritePin(GREEN_LED_GPIO_Port, GREEN_LED_Pin, state);
+}
