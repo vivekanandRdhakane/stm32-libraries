@@ -427,6 +427,7 @@ extern const uint16_t b_ccb []    ;
 extern const uint16_t b_tilda []  ;
 
 
+extern const uint16_t m_fill []      ;
 
 extern  const uint16_t* s_numbers[];
 extern  const uint16_t* m_numbers[];

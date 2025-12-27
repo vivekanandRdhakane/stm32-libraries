@@ -34,7 +34,7 @@ extern C {
 
 #include "stdlib.h"
 #include "string.h"
-
+#include "stdbool.h"
 
 /* I2C address */
 #ifndef SSD1306_I2C_ADDR
