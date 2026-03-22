@@ -27,3 +27,8 @@ void turn_ON_OFF_green_LED(uint8_t state)
 {
     HAL_GPIO_WritePin(GREEN_LED_GPIO_Port, GREEN_LED_Pin, state);
 }
+
+void turn_ON_OFF_red_LED(uint8_t state)
+{
+    HAL_GPIO_WritePin(RED_LED_GPIO_Port, RED_LED_Pin, state);
+}
